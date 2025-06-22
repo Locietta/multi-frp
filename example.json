@@ -1,0 +1,7 @@
+{
+    "frpc": "path/to/frpc",
+    "configs": [
+        "path/to/config1.ini",
+        "path/to/config2.ini"
+    ]
+}
