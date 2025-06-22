@@ -10,10 +10,10 @@ if is_os("windows") then
     add_defines("WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "NOMINMAX", "_WINDOWS")
 end
 
-add_requires("fmt", "nlohmann_json")
+add_requires("fmt", "nlohmann_json", "reproc")
 
 target("multi-frp")
     set_kind("binary")
     add_files("src/*.cpp")
     add_includedirs("src", {public = true})
-    add_packages("fmt", "nlohmann_json", "filesystem")
+    add_packages("fmt", "nlohmann_json", "filesystem", "reproc")
