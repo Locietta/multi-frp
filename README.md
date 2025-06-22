@@ -1,0 +1,3 @@
+# multi-frp
+
+Simple wrapper for frp to connect to multiple servers. I need a standalone executable so I can detect if it's running with autohotkey...
