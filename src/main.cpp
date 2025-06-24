@@ -1,95 +1,14 @@
 #include <filesystem>
 #include <fstream>
 
-#include <signal.h>
-
 #include <fmt/base.h>
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
-#include <reproc++/reproc.hpp>
+#include "process/process_manager.h"
+#include "signal_handler.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-class MultiProcessManager {
-private:
-    std::vector<reproc::process> processes_;
-
-public:
-    void add_process(std::vector<std::string> args) {
-        reproc::process process;
-        process.start(args);
-        processes_.push_back(std::move(process));
-    }
-
-    void terminate_all() {
-        fmt::println("Terminating {} processes...", processes_.size());
-        for (auto &process : processes_) {
-            // First try graceful termination
-            auto err = process.terminate();
-            if (err) {
-                fmt::println("Warning: Failed to terminate process gracefully: {}", err.message());
-                // Force kill if graceful termination fails
-                process.kill();
-            }
-        }
-        fmt::println("All processes terminated.");
-    }
-
-    void wait_all() {
-        for (auto &process : processes_) {
-            auto [exit_code, err] = process.wait(reproc::infinite);
-            if (err) {
-                fmt::print("Error waiting for process: {}\n", err.message());
-            } else {
-                fmt::print("Process exited with code: {}\n", exit_code);
-            }
-        }
-    }
-};
-
-static MultiProcessManager multi_process_manager;
-
-void signal_handler(int signal) {
-    // convert signal to string for logging
-    const char *signal_str;
-    switch (signal) {
-        case SIGINT: signal_str = "SIGINT"; break;
-        case SIGTERM: signal_str = "SIGTERM"; break;
-        case SIGABRT: signal_str = "SIGABRT"; break;
-#ifdef _WIN32
-        case SIGBREAK: signal_str = "SIGBREAK"; break;
-#endif
-        default: signal_str = "UNKNOWN SIGNAL"; break;
-    }
-
-    fmt::println("Received signal: {}", signal_str);
-    multi_process_manager.terminate_all();
-    exit(signal);
-}
-
-#ifdef _WIN32
-BOOL WINAPI console_ctrl_handler(DWORD ctrl_type) {
-    const char *signal_str;
-    switch (ctrl_type) {
-        case CTRL_C_EVENT: signal_str = "CTRL_C_EVENT"; break;
-        case CTRL_BREAK_EVENT: signal_str = "CTRL_BREAK_EVENT"; break;
-        case CTRL_CLOSE_EVENT: signal_str = "CTRL_CLOSE_EVENT"; break;
-        case CTRL_LOGOFF_EVENT: signal_str = "CTRL_LOGOFF_EVENT"; break;
-        case CTRL_SHUTDOWN_EVENT: signal_str = "CTRL_SHUTDOWN_EVENT"; break;
-        default: signal_str = "UNKNOWN_CTRL_EVENT"; break;
-    }
-
-    fmt::println("Received Windows control event: {}", signal_str);
-    multi_process_manager.terminate_all();
-
-    // Return TRUE to indicate we handled the event
-    // This gives us time to clean up before the process is forcibly terminated
-    return TRUE;
-}
-#endif
+ProcessManager process_manager;
 
 int main(int argc, char **argv) {
     // accept a json file to specify frpc binary location and config files
@@ -105,17 +24,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Register signal handlers for graceful shutdown
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
-    signal(SIGABRT, signal_handler);
-
-#ifdef _WIN32
-    // Register Windows console control handler for Task Manager termination
-    if (!SetConsoleCtrlHandler(console_ctrl_handler, TRUE)) {
-        fmt::print("Warning: Failed to set console control handler\n");
-    }
-#endif
+    register_signal_handlers();
 
     // Read the JSON configuration file
     nlohmann::json config;
@@ -192,7 +101,7 @@ int main(int argc, char **argv) {
     for (const auto &config_file : config_files) {
         std::vector<std::string> args = {frpc_path, "-c", config_file};
         try {
-            multi_process_manager.add_process(std::move(args));
+            process_manager.add_process(std::move(args));
             fmt::print("Started frpc with config: {}\n", config_file);
         } catch (const std::exception &e) {
             fmt::print("Error starting frpc with config {}: {}\n", config_file, e.what());
@@ -200,7 +109,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    multi_process_manager.wait_all();
+    process_manager.wait_all();
     fmt::print("All frpc instances have been executed.\n");
 
     return 0;
