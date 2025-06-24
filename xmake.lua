@@ -12,4 +12,6 @@ end
 
 add_requires("fmt", "nlohmann_json")
 
+includes("xmake/upx.lua")
+
 includes("*/xmake.lua")
