@@ -15,8 +15,6 @@ struct PimplBase : Unique {
 
 template <typename Derived>
 struct Pimpl : Unique {
-    PimplBase<Derived> impl_;
-
     // delay instantiation of the implementation
     template <typename... Args>
     Pimpl(Args &&...args)
@@ -30,10 +28,17 @@ struct Pimpl : Unique {
     // Accessor for the implementation
     template <typename ImplType>
     ImplType *impl() noexcept {
+        static_assert(std::is_same_v<ImplType, typename Derived::Impl>,
+                      "ImplType must match Derived::Impl");
         return static_cast<ImplType *>(impl_.ptr_.get());
     }
     template <typename ImplType>
     const ImplType *impl() const noexcept {
+        static_assert(std::is_same_v<ImplType, typename Derived::Impl>,
+                      "ImplType must match Derived::Impl");
         return static_cast<const ImplType *>(impl_.ptr_.get());
     }
+
+private:
+    PimplBase<Derived> impl_;
 };
