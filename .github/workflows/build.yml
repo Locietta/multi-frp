@@ -23,8 +23,10 @@ jobs:
 
       - name: Install UPX (for Windows builds)
         if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          winget install UPX.UPX -e --silent --accept-package-agreements --accept-source-agreements
+        uses: MinoruSekine/setup-scoop@v4.0.2
+        with:
+          buckets: extras
+          apps: upx
 
       - name: Build with xmake
         run: |
