@@ -1,0 +1,13 @@
+name: Nightly Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  nightly-build:
+    uses: ./.github/workflows/build.yml

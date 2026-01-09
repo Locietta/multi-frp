@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+          package-cache: true
+          package-cache-key: ${{ runner.os }}-xmake-packages
+
+      - name: Install UPX (for Windows builds)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          winget install UPX.UPX -e --silent --accept-package-agreements --accept-source-agreements
+
+      - name: Build with xmake
+        run: |
+          xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release -y
+          xmake -vvvD -y
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@main
+        with:
+          name: build-${{ matrix.os }}
+          path: build/${{ matrix.os == 'windows-latest' && 'multi-frp.exe' || 'multi-frp' }}
