@@ -10,6 +10,9 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@main
@@ -32,9 +35,14 @@ jobs:
         run: |
           xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release -y
           xmake -vvvD -y
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            mv build/multi-frp.exe build/multi-frp-windows-amd64.exe
+          else
+            mv build/multi-frp build/multi-frp-linux-amd64
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@main
         with:
           name: build-${{ matrix.os }}
-          path: build/${{ matrix.os == 'windows-latest' && 'multi-frp.exe' || 'multi-frp' }}
+          path: build/multi-frp*
