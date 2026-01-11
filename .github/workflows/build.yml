@@ -10,9 +10,6 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - uses: actions/checkout@main
@@ -35,6 +32,10 @@ jobs:
         run: |
           xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release -y
           xmake -vvvD -y
+      
+      - name: Rename build output
+        shell: bash
+        run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             mv build/multi-frp.exe build/multi-frp-windows-amd64.exe
           else
