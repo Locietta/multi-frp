@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
+        with:
+          ref: main
       - uses: rhysd/changelog-from-release/action@v3
         with:
           file: CHANGELOG.md
