@@ -99,9 +99,9 @@ int main(int argc, char **argv) {
 
     // Execute multiple frpc all at background
     for (const auto &config_file : config_files) {
-        std::vector<std::string> args = {frpc_path, "-c", config_file};
+        const auto args = std::array{frpc_path, std::string("-c"), config_file};
         try {
-            process_manager.add_process(std::move(args));
+            process_manager.add_process(args);
             fmt::print("Started frpc with config: {}\n", config_file);
         } catch (const std::exception &e) {
             fmt::print("Error starting frpc with config {}: {}\n", config_file, e.what());

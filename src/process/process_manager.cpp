@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <fmt/base.h>
 
-void ProcessManager::add_process(std::vector<std::string> args) {
+void ProcessManager::add_process(std::span<std::string const> args) {
     Process process;
     if (process.start(args)) {
         processes_.push_back(std::move(process));

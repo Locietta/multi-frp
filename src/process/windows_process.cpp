@@ -32,7 +32,7 @@ struct Process::Impl {
         }
     }
 
-    bool start(const std::vector<std::string> &args) {
+    bool start(std::span<std::string const> args) {
         if (args.empty()) return false;
 
         std::string command_line = build_command_line(args);
@@ -127,7 +127,7 @@ struct Process::Impl {
     // std::unique_ptr<Impl> clone() const { return std::make_unique<Impl>(*this); }
 
 private:
-    std::string build_command_line(const std::vector<std::string> &args) {
+    std::string build_command_line(std::span<std::string const> args) {
         std::string result;
         result.reserve(256); // Pre-allocate reasonable size
 
@@ -145,7 +145,7 @@ Process::Process() {}
 
 Process::~Process() = default;
 
-bool Process::start(const std::vector<std::string> &args) {
+bool Process::start(std::span<std::string const> args) {
     return impl<Process::Impl>()->start(args);
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <span>
 
 #include "util/pimpl.hpp"
 
@@ -14,7 +14,7 @@ struct Process : Pimpl<Process> {
     Process(Process &&) noexcept = default;
     Process &operator=(Process &&) noexcept = default;
 
-    bool start(const std::vector<std::string> &args);
+    bool start(std::span<std::string const> args);
     bool stop(int timeout_ms = 5000);
     bool is_running() const;
     int wait();
