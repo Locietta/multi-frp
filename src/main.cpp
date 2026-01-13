@@ -14,13 +14,13 @@ int main(int argc, char **argv) {
     // accept a json file to specify frpc binary location and config files
 
     if (argc < 2) {
-        fmt::print("Usage: {} <config.json>\n", argv[0]);
+        fmt::println("Usage: {} <config.json>", argv[0]);
         return 1;
     }
 
-    std::string config_file_path = argv[1];
+    const std::string config_file_path = argv[1];
     if (!std::filesystem::exists(config_file_path)) {
-        fmt::print("Config file does not exist: {}\n", config_file_path);
+        fmt::println("Config file does not exist: {}", config_file_path);
         return 1;
     }
 
@@ -30,14 +30,14 @@ int main(int argc, char **argv) {
     nlohmann::json config;
     std::ifstream config_file(config_file_path);
     if (!config_file.is_open()) {
-        fmt::print("Failed to open config file: {}\n", config_file_path);
+        fmt::println("Failed to open config file: {}", config_file_path);
         return 1;
     }
 
     try {
         config_file >> config;
     } catch (const std::exception &e) {
-        fmt::print("Error reading config file: {}\n", e.what());
+        fmt::println("Error reading config file: {}", e.what());
         return 1;
     }
 
@@ -53,16 +53,16 @@ int main(int argc, char **argv) {
     */
 
     if (!config.contains("frpc") || !config.contains("configs")) {
-        fmt::print("Invalid config file format. Expected 'frpc' and 'configs' keys.\n");
+        fmt::println("Invalid config file format. Expected 'frpc' and 'configs' keys.");
         return 1;
     }
 
     std::string frpc_path = config["frpc"].get<std::string>();
-    std::vector<std::string> config_files = config["configs"].get<std::vector<std::string>>();
+    auto config_files = config["configs"].get<std::vector<std::string>>();
 
     // detect if the paths is absolute or relative
     // if relative, convert to absolute path using the config file path as base
-    std::filesystem::path base_path = std::filesystem::path(config_file_path).parent_path();
+    const auto base_path = std::filesystem::path(config_file_path).parent_path();
     if (!std::filesystem::path(frpc_path).is_absolute()) {
         frpc_path = (base_path / frpc_path).string();
     }
@@ -79,13 +79,13 @@ int main(int argc, char **argv) {
 
     // Check if frpc binary exists
     if (!std::filesystem::exists(frpc_path)) {
-        fmt::print("frpc binary does not exist: {}\n", frpc_path);
+        fmt::println("frpc binary does not exist: {}", frpc_path);
         return 1;
     }
     // Check if all config files exist
     for (const auto &config_file : config_files) {
         if (!std::filesystem::exists(config_file)) {
-            fmt::print("Config file does not exist: {}\n", config_file);
+            fmt::println("Config file does not exist: {}", config_file);
             return 1;
         }
     }
@@ -102,15 +102,15 @@ int main(int argc, char **argv) {
         const auto args = std::array{frpc_path, std::string("-c"), config_file};
         try {
             process_manager.add_process(args);
-            fmt::print("Started frpc with config: {}\n", config_file);
+            fmt::println("Started frpc with config: {}", config_file);
         } catch (const std::exception &e) {
-            fmt::print("Error starting frpc with config {}: {}\n", config_file, e.what());
+            fmt::println("Error starting frpc with config {}: {}", config_file, e.what());
             return 1;
         }
     }
 
     process_manager.wait_all();
-    fmt::print("All frpc instances have been executed.\n");
+    fmt::println("All frpc instances have been executed.");
 
     return 0;
 }
