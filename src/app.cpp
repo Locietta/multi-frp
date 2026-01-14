@@ -6,6 +6,10 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
+#include <argparse/argparse.hpp>
+
+#include "version.h"
+
 #ifndef _WIN32
 #include <signal.h>
 #include <pthread.h>
@@ -36,12 +40,22 @@ const char *signal_to_str(int signal) {
 #endif
 
 int App::run(int argc, char *argv[]) {
-    if (argc < 2) {
-        fmt::println("Usage: {} <config.json>", argv[0]);
+    argparse::ArgumentParser program("multi-frp", version);
+    program.add_argument("-c", "--config")
+        .help("Path to the JSON configuration file")
+        .metavar("CONFIG_FILE")
+        .required();
+
+    try {
+        program.parse_args(argc, argv);
+    } catch (const std::exception &err) {
+        fmt::println("Error parsing arguments: {}", err.what());
+        fmt::println("{}", program.help().str());
         return 1;
     }
 
-    const std::string config_file_path = argv[1];
+    const auto config_file_path = program.get<std::string>("--config");
+
     if (!std::filesystem::exists(config_file_path)) {
         fmt::println("Config file does not exist: {}", config_file_path);
         return 1;

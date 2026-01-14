@@ -11,8 +11,6 @@ if is_os("windows") then
     add_defines("WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "NOMINMAX", "_WINDOWS")
 end
 
-add_requires("fmt", "nlohmann_json")
-
 includes("xmake/upx.lua")
 
 includes("*/xmake.lua")
