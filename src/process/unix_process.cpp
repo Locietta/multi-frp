@@ -24,6 +24,7 @@ struct Process::Impl {
         
         // Convert to char* array for execvp
         std::vector<char*> argv;
+        argv.reserve(args.size() + 1);
         for (const auto& arg : args) {
             argv.push_back(const_cast<char*>(arg.c_str()));
         }
