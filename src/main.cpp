@@ -100,13 +100,11 @@ int main(int argc, char **argv) {
     // Execute multiple frpc all at background
     for (const auto &config_file : config_files) {
         const auto args = std::array{frpc_path, std::string("-c"), config_file};
-        try {
-            process_manager.add_process(args);
-            fmt::println("Started frpc with config: {}", config_file);
-        } catch (const std::exception &e) {
-            fmt::println("Error starting frpc with config {}: {}", config_file, e.what());
+        if (!process_manager.add_process(args)) {
+            fmt::println("Failed to start frpc with config: {}", config_file);
             return 1;
         }
+        fmt::println("Started frpc with config: {}", config_file);
     }
 
     process_manager.wait_all();

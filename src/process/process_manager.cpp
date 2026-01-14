@@ -1,15 +1,15 @@
 #include "process/process_manager.h"
 
-#include <stdexcept>
 #include <fmt/base.h>
 
-void ProcessManager::add_process(std::span<std::string const> args) {
+bool ProcessManager::add_process(std::span<std::string const> args) {
     Process process;
-    if (process.start(args)) {
-        processes_.push_back(std::move(process));
-    } else {
-        throw std::runtime_error("Failed to start process");
+    if (!process.start(args)) {
+        return false;
     }
+
+    processes_.push_back(std::move(process));
+    return true;
 }
 
 void ProcessManager::terminate_all() {
