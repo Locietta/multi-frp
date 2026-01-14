@@ -2,6 +2,11 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      version:
+        description: "Version string to embed in the build"
+        type: string
+        required: true
 
 jobs:
   build:
@@ -30,16 +35,16 @@ jobs:
 
       - name: Build with xmake
         run: |
-          xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release -y
+          xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release --version=${{ inputs.version }} -y
           xmake -vvvD -y
-      
+
       - name: Rename build output
         shell: bash
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            mv build/multi-frp.exe build/multi-frp-windows-amd64.exe
+            mv build/multi-frp.exe build/multi-frp-windows-amd64-${{ inputs.version }}.exe
           else
-            mv build/multi-frp build/multi-frp-linux-amd64
+            mv build/multi-frp build/multi-frp-linux-amd64-${{ inputs.version }}
           fi
 
       - name: Upload build artifacts

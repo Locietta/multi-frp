@@ -9,5 +9,25 @@ on:
       - main
 
 jobs:
+  gen-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@main
+      - name: Set nightly version
+        id: set-version
+        run: |
+          # get latest tag and current commit short hash
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+
+          # construct version string
+          VERSION="${LATEST_TAG}+${COMMIT_HASH}"
+          echo "version=$VERSION" | tee -a $GITHUB_OUTPUT
+
   nightly-build:
     uses: ./.github/workflows/build.yml
+    needs: gen-version
+    with:
+      version: ${{ needs.gen-version.outputs.version }}
