@@ -78,31 +78,9 @@ int App::run(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string frpc_path = config["frpc"].get<std::string>();
-    auto config_files = config["configs"].get<std::vector<std::string>>();
+    const auto frpc_path = config["frpc"].get<std::string>();
+    const auto config_files = config["configs"].get<std::vector<std::string>>();
 
-    // detect if the paths is absolute or relative
-    // if relative, convert to absolute path using the config file path as base
-    const auto base_path = std::filesystem::path(config_file_path).parent_path();
-    if (!std::filesystem::path(frpc_path).is_absolute()) {
-        frpc_path = (base_path / frpc_path).string();
-    }
-    for (auto &config_file : config_files) {
-        if (!std::filesystem::path(config_file).is_absolute()) {
-            config_file = (base_path / config_file).string();
-        }
-    }
-    // renormalize paths
-    frpc_path = std::filesystem::canonical(frpc_path).string();
-    for (auto &config_file : config_files) {
-        config_file = std::filesystem::canonical(config_file).string();
-    }
-
-    // Check if frpc binary exists
-    if (!std::filesystem::exists(frpc_path)) {
-        fmt::println("frpc binary does not exist: {}", frpc_path);
-        return 1;
-    }
     // Check if all config files exist
     for (const auto &config_file : config_files) {
         if (!std::filesystem::exists(config_file)) {
