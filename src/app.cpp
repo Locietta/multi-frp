@@ -37,6 +37,26 @@ const char *signal_to_str(int signal) {
 
 } // namespace
 
+#else
+
+#include <windows.h>
+namespace {
+
+BOOL WINAPI console_ctrl_handler(DWORD signal) {
+    switch (signal) {
+        case CTRL_C_EVENT:
+        case CTRL_BREAK_EVENT:
+        case CTRL_CLOSE_EVENT:
+        case CTRL_LOGOFF_EVENT:
+        case CTRL_SHUTDOWN_EVENT:
+            // ignore all these events, let child handle them first
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+} // namespace
 #endif
 
 int App::run(int argc, char *argv[]) {
@@ -45,6 +65,16 @@ int App::run(int argc, char *argv[]) {
         .help("Path to the JSON configuration file")
         .metavar("CONFIG_FILE")
         .required();
+
+#ifndef _WIN32
+    const auto signals = make_sigset({SIGINT, SIGTERM, SIGABRT, SIGSEGV});
+    pthread_sigmask(SIG_BLOCK, &signals, nullptr);
+#else
+    if (!SetConsoleCtrlHandler(console_ctrl_handler, TRUE)) {
+        fmt::println("Error: Could not set control handler");
+        return 1;
+    }
+#endif
 
     try {
         program.parse_args(argc, argv);
@@ -121,8 +151,6 @@ int App::run(int argc, char *argv[]) {
     }
 
 #ifndef _WIN32
-    const auto signals = make_sigset({SIGINT, SIGTERM, SIGABRT, SIGSEGV});
-    pthread_sigmask(SIG_BLOCK, &signals, nullptr);
     int last_signal;
     sigwait(&signals, &last_signal);
     fmt::println("Received termination signal: {}", signal_to_str(last_signal));
