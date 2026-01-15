@@ -19,7 +19,7 @@ struct Process::Impl {
         }
     }
     
-    bool start(std::span<std::string const> args) {
+    bool start(std::span<str const> args) {
         if (args.empty()) return false;
         
         // Convert to char* array for execvp
@@ -106,7 +106,7 @@ Process::Process() {}
 
 Process::~Process() = default;
 
-bool Process::start(std::span<std::string const> args) {
+bool Process::start(std::span<str const> args) {
     return impl<Process::Impl>()->start(args);
 }
 

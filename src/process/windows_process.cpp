@@ -32,18 +32,18 @@ struct Process::Impl {
         }
     }
 
-    bool start(std::span<std::string const> args) {
+    bool start(std::span<str const> args) {
         if (args.empty()) return false;
 
-        std::string command_line = build_command_line(args);
+        str command_line = build_command_line(args);
 
-        STARTUPINFOA startup_info = {};
+        STARTUPINFOW startup_info = {};
         startup_info.cb = sizeof(startup_info);
 
         PROCESS_INFORMATION process_info = {};
 
         // Create the process
-        BOOL result = CreateProcessA(
+        BOOL result = CreateProcessW(
             nullptr,             // Application name
             command_line.data(), // Command line
             nullptr,             // Process security attributes
@@ -127,15 +127,15 @@ struct Process::Impl {
     // std::unique_ptr<Impl> clone() const { return std::make_unique<Impl>(*this); }
 
 private:
-    std::string build_command_line(std::span<std::string const> args) {
-        std::string result;
+    str build_command_line(std::span<str const> args) {
+        str result;
         result.reserve(256); // Pre-allocate reasonable size
 
         for (size_t i = 0; i < args.size(); ++i) {
-            if (i > 0) result.append(" ");
-            result.append("\"");
+            if (i > 0) result.append(L" ");
+            result.append(L"\"");
             result.append(args[i]);
-            result.append("\"");
+            result.append(L"\"");
         }
         return result;
     }
@@ -145,7 +145,7 @@ Process::Process() {}
 
 Process::~Process() = default;
 
-bool Process::start(std::span<std::string const> args) {
+bool Process::start(std::span<str const> args) {
     return impl<Process::Impl>()->start(args);
 }
 

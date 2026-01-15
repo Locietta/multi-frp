@@ -10,7 +10,7 @@ enum class ParseResult : unsigned char {
 };
 
 struct CliParser final {
-    ParseResult parse(this auto &self, int argc, native_cstr argv[]);
+    ParseResult parse(this CliParser &self, int argc, cstr argv[]);
 
     std::filesystem::path config_file_path;
 };

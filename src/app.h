@@ -4,7 +4,7 @@
 #include "util/str.hpp"
 
 struct App final {
-    int run(int argc, native_cstr argv[]);
+    int run(int argc, cstr argv[]);
 
 private:
     ProcessManager process_manager_;
