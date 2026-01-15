@@ -32,8 +32,8 @@ const char *signal_to_str(int signal) {
 }
 
 // no op on linux
-constexpr std::string std_to_str(std::string utf8) {
-    return utf8;
+constexpr std::string std_to_str(std::string_view utf8) {
+    return std::string(utf8);
 }
 
 } // namespace
