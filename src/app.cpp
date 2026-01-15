@@ -6,9 +6,7 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
-#include <argparse/argparse.hpp>
-
-#include "version.h"
+#include "cli_parser.h"
 
 #ifndef _WIN32
 #include <signal.h>
@@ -59,12 +57,7 @@ BOOL WINAPI console_ctrl_handler(DWORD signal) {
 } // namespace
 #endif
 
-int App::run(int argc, char *argv[]) {
-    argparse::ArgumentParser program("multi-frp", version);
-    program.add_argument("-c", "--config")
-        .help("Path to the JSON configuration file")
-        .metavar("CONFIG_FILE")
-        .required();
+int App::run(int argc, native_cstr argv[]) {
 
 #ifndef _WIN32
     const auto signals = make_sigset({SIGINT, SIGTERM, SIGABRT, SIGSEGV});
@@ -76,18 +69,19 @@ int App::run(int argc, char *argv[]) {
     }
 #endif
 
-    try {
-        program.parse_args(argc, argv);
-    } catch (const std::exception &err) {
-        fmt::println("Error parsing arguments: {}", err.what());
-        fmt::println("{}", program.help().str());
+    CliParser parser;
+    const auto parse_result = parser.parse(argc, argv);
+    if (parse_result == ParseResult::GRACEFUL_EXIT) {
+        return 0;
+    } else if (parse_result == ParseResult::ERR) {
         return 1;
     }
 
-    const auto config_file_path = program.get<std::string>("--config");
+    const auto config_file_path = parser.config_file_path;
+    const auto config_file_path_cstr = config_file_path.c_str();
 
     if (!std::filesystem::exists(config_file_path)) {
-        fmt::println("Config file does not exist: {}", config_file_path);
+        fmt::println("Config file does not exist: {}", config_file_path_cstr);
         return 1;
     }
 
@@ -95,7 +89,7 @@ int App::run(int argc, char *argv[]) {
     nlohmann::json config;
     std::ifstream config_file(config_file_path);
     if (!config_file.is_open()) {
-        fmt::println("Failed to open config file: {}", config_file_path);
+        fmt::println("Failed to open config file: {}", config_file_path_cstr);
         return 1;
     }
 

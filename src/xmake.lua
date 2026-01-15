@@ -2,7 +2,7 @@ add_includedirs(".")
 
 includes("process")
 
-add_requires("fmt", "nlohmann_json", "argparse")
+add_requires("fmt", "nlohmann_json")
 
 option("version")
     set_showmenu(true)
@@ -14,6 +14,6 @@ target("multi-frp")
     add_rules("module.program")
     add_options("version")
     add_files("*.cpp")
-    add_packages("fmt", "nlohmann_json", "argparse")
+    add_packages("fmt", "nlohmann_json")
     add_headerfiles("*.h", "util/*.hpp", { install = false })
     add_deps("process")

@@ -4,3 +4,4 @@
 #endif
 
 inline const char *version = MULTI_FRP_VERSION;
+inline const char *program_name = "multi-frp";
