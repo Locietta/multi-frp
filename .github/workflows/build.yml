@@ -20,6 +20,8 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
+    env:
+      XMAKE_ROOT: ${{ matrix.os == 'ubuntu-latest' && 'y' || '' }}
 
     steps:
       - uses: actions/checkout@main
