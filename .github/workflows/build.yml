@@ -12,9 +12,13 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            container: cachyos/cachyos-v3:latest
+          - os: windows-latest
 
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
 
     steps:
       - uses: actions/checkout@main
@@ -26,15 +30,13 @@ jobs:
           package-cache: true
           package-cache-key: ${{ runner.os }}-xmake-packages
 
-      - name: Install UPX (for Windows builds)
-        if: ${{ matrix.os == 'windows-latest' }}
-        uses: MinoruSekine/setup-scoop@v4.0.2
-        with:
-          buckets: extras
-          apps: upx
-
       - name: Build with xmake
         run: |
+          # install dependencies on linux
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo pacman -Syu --noconfirm git gcc
+          fi
+
           xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release --version=${{ inputs.version }} -y
           xmake -vvvD -y
 
