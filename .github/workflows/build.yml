@@ -36,7 +36,7 @@ jobs:
       - name: Install Dependencies (Linux)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          sudo pacman -Syu --noconfirm git gcc
+          sudo pacman -Syu --noconfirm curl wget cmake ninja
 
       - name: Build with xmake
         run: |
