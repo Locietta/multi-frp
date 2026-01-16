@@ -93,20 +93,23 @@ int App::run(int argc, char *argv[]) {
 
     // Read the JSON configuration file
 
-    std::unique_ptr<FILE, decltype(&fclose)> file_ptr(fopen(config_file_path_str.c_str(), "r"), &fclose);
-    if (!file_ptr) {
-        fmt::println("Failed to open config file: {}", config_file_path_str);
-        return 1;
-    }
     std::string file_content;
-    const auto file_size = fseek(file_ptr.get(), 0, SEEK_END);
-    if (file_size != 0) {
-        fmt::println("Failed to read config file: {}", config_file_path_str);
-        return 1;
+    {
+        const auto file_deleter = [](FILE *file) static { if (file) {fclose(file);} };
+        std::unique_ptr<FILE, decltype(file_deleter)> file_ptr(fopen(config_file_path_str.c_str(), "r"), file_deleter);
+        if (!file_ptr) {
+            fmt::println("Failed to open config file: {}", config_file_path_str);
+            return 1;
+        }
+        const auto file_size = fseek(file_ptr.get(), 0, SEEK_END);
+        if (file_size != 0) {
+            fmt::println("Failed to read config file: {}", config_file_path_str);
+            return 1;
+        }
+        file_content.resize(ftell(file_ptr.get()));
+        fseek(file_ptr.get(), 0, SEEK_SET);
+        fread(file_content.data(), 1, file_content.size(), file_ptr.get());
     }
-    file_content.resize(ftell(file_ptr.get()));
-    fseek(file_ptr.get(), 0, SEEK_SET);
-    fread(file_content.data(), 1, file_content.size(), file_ptr.get());
 
     /// Parse JSON
     const auto config_opt = [&] -> std::optional<Config> {
