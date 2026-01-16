@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -30,13 +31,13 @@ jobs:
           package-cache: true
           package-cache-key: ${{ runner.os }}-xmake-packages
 
+      - name: Install Dependencies (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo pacman -Syu --noconfirm git gcc
+
       - name: Build with xmake
         run: |
-          # install dependencies on linux
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            sudo pacman -Syu --noconfirm git gcc
-          fi
-
           xmake f -p ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }} -m release --version=${{ inputs.version }} -y
           xmake -vvvD -y
 
