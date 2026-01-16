@@ -1,13 +1,12 @@
 #include "app.h"
 #include <array>
 #include <filesystem>
-#include <fstream>
 #include <string>
 
-#include <nlohmann/json.hpp>
 #include <fmt/base.h>
 
 #include "cli_parser.h"
+#include "config.hpp"
 
 #ifndef _WIN32
 #include <signal.h>
@@ -93,41 +92,43 @@ int App::run(int argc, char *argv[]) {
     }
 
     // Read the JSON configuration file
-    nlohmann::json config;
-    std::ifstream config_file(config_file_path);
-    if (!config_file.is_open()) {
+
+    std::unique_ptr<FILE, decltype(&fclose)> file_ptr(fopen(config_file_path_str.c_str(), "r"), &fclose);
+    if (!file_ptr) {
         fmt::println("Failed to open config file: {}", config_file_path_str);
         return 1;
     }
-
-    try {
-        config_file >> config;
-    } catch (const std::exception &e) {
-        fmt::println("Error reading config file: {}", e.what());
+    std::string file_content;
+    const auto file_size = fseek(file_ptr.get(), 0, SEEK_END);
+    if (file_size != 0) {
+        fmt::println("Failed to read config file: {}", config_file_path_str);
         return 1;
     }
+    file_content.resize(ftell(file_ptr.get()));
+    fseek(file_ptr.get(), 0, SEEK_SET);
+    fread(file_content.data(), 1, file_content.size(), file_ptr.get());
 
-    /// Example JSON structure:
-    /*
-    {
-        "frpc": "path/to/frpc",
-        "configs": [
-            "path/to/config1.toml",
-            "path/to/config2.toml"
-        ]
-    }
-    */
-
-    if (!config.contains("frpc") || !config.contains("configs")) {
-        fmt::println("Invalid config file format. Expected 'frpc' and 'configs' keys.");
-        return 1;
-    }
-
-    const auto frpc_path = config["frpc"].get<std::string>();
-    const auto config_files = config["configs"].get<std::vector<std::string>>();
+    /// Parse JSON
+    const auto config_opt = [&] -> std::optional<Config> {
+        try {
+            auto ret = daw::json::from_json<Config>(file_content);
+            return ret;
+        } catch (const daw::json::json_exception &e) {
+            fmt::println("Error parsing config file: {}", e.what());
+            return std::nullopt;
+        } catch (const std::exception &e) {
+            fmt::println("Error parsing config file: {}", e.what());
+            return std::nullopt;
+        } catch (...) {
+            fmt::println("Unknown error parsing config file.");
+            return std::nullopt;
+        }
+    }();
+    if (!config_opt) { return 1; }
+    const auto &config = config_opt.value();
 
     // Check if all config files exist
-    for (const auto &config_file : config_files) {
+    for (const auto &config_file : config.configs) {
         const auto config_path = std::filesystem::path(config_file);
         if (!std::filesystem::exists(config_path)) {
             fmt::println("Config file does not exist: {}", config_file);
@@ -136,15 +137,15 @@ int App::run(int argc, char *argv[]) {
     }
 
     // Print the frpc binary path and config files
-    fmt::println("frpc binary: {}", frpc_path);
+    fmt::println("frpc binary: {}", config.frpc);
     fmt::println("Config files:");
-    for (const auto &config_file : config_files) {
+    for (const auto &config_file : config.configs) {
         fmt::println(" - {}", config_file);
     }
 
     // Execute multiple frpc all at background
-    for (const auto &config_file : config_files) {
-        const auto args = std::array{frpc_path.c_str(), "-c", config_file.c_str(), arg_end};
+    for (const auto &config_file : config.configs) {
+        const auto args = std::array{config.frpc.c_str(), "-c", config_file.c_str(), arg_end};
         if (!process_manager_.add_process(args)) {
             fmt::println("Failed to start frpc with config: {}", config_file);
             return 1;
