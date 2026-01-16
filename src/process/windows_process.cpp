@@ -3,7 +3,8 @@
 
 #include "process/process.h"
 
-#include <fmt/format.h>
+#include <string>
+#include <fmt/base.h>
 #include <windows.h>
 
 struct Process::Impl {
