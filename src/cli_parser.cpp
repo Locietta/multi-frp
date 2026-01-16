@@ -2,6 +2,7 @@
 
 #include <fmt/base.h>
 #include <vector>
+#include <cstring>
 #include "version.h"
 
 namespace {
