@@ -1,7 +1,7 @@
 set_project("multi-frp")
 set_description("Simple wrapper for frp to connect to multiple servers")
 
-add_rules("mode.release", "mode.debug", "mode.releasedbg")
+add_rules("mode.release", "mode.debug", "mode.minsizerel")
 set_languages("cxx23")
 set_policy("build.optimization.lto", true)
 
