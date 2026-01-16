@@ -32,6 +32,7 @@ const char *signal_to_str(int signal) {
 }
 
 #define std_to_str(str) (str)
+#define arg_end (const_cstr{nullptr})
 
 } // namespace
 
@@ -83,6 +84,9 @@ auto std_to_str(T &&range) {
 }
 
 } // namespace
+
+#define arg_end
+
 #endif
 
 int App::run(int argc, cstr argv[]) {
@@ -166,7 +170,7 @@ int App::run(int argc, cstr argv[]) {
 
     // Execute multiple frpc all at background
     for (const auto &config_file : config_files) {
-        const auto args = std::array{frpc_path.c_str(), STR("-c"), config_file.c_str()};
+        const auto args = std::array{frpc_path.c_str(), STR("-c"), config_file.c_str(), arg_end};
         if (!process_manager_.add_process(args)) {
             fmt::println(STR("Failed to start frpc with config: {}"), config_file);
             return 1;
