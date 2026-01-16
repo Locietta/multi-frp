@@ -31,10 +31,7 @@ const char *signal_to_str(int signal) {
     }
 }
 
-// no op on linux
-constexpr std::string std_to_str(std::string_view utf8) {
-    return std::string(utf8);
-}
+#define std_to_str(str) (str)
 
 } // namespace
 
@@ -59,15 +56,29 @@ BOOL WINAPI console_ctrl_handler(DWORD signal) {
     }
 }
 
-std::wstring std_to_str(std::string_view utf8) {
+str std_to_str(std::string_view utf8) {
     if (utf8.empty()) return {};
     const int needed = MultiByteToWideChar(CP_UTF8, 0, utf8.data(),
                                            static_cast<int>(utf8.size()),
                                            nullptr, 0);
-    std::wstring result(needed, L'\0');
+    str result(needed, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, utf8.data(),
                         static_cast<int>(utf8.size()),
                         result.data(), needed);
+    return result;
+}
+
+template <std::ranges::range T>
+    requires std::convertible_to<std::ranges::range_value_t<T>, std::string_view>
+auto std_to_str(T &&range) {
+    std::vector<str> result;
+    if constexpr (std::ranges::sized_range<T>) {
+        result.reserve(std::ranges::size(range));
+    }
+
+    for (const auto &item : range) {
+        result.push_back(std_to_str(item));
+    }
     return result;
 }
 
@@ -115,7 +126,7 @@ int App::run(int argc, cstr argv[]) {
     try {
         config_file >> config;
     } catch (const std::exception &e) {
-        fmt::println(STR("Error reading config file: {}"), const_cstr(e.what()));
+        fmt::println(STR("Error reading config file: {}"), std_to_str(e.what()));
         return 1;
     }
 
@@ -136,8 +147,7 @@ int App::run(int argc, cstr argv[]) {
     }
 
     const auto frpc_path = std_to_str(config["frpc"].get<std::string>());
-    const auto config_files = config["configs"].get<std::vector<std::string>>() |
-                              std::views::transform([](const std::string_view s) { return std_to_str(s); });
+    const auto config_files = std_to_str(config["configs"].get<std::vector<std::string>>());
 
     // Check if all config files exist
     for (const auto &config_file : config_files) {
@@ -156,7 +166,7 @@ int App::run(int argc, cstr argv[]) {
 
     // Execute multiple frpc all at background
     for (const auto &config_file : config_files) {
-        const auto args = std::array{frpc_path, str(STR("-c")), config_file};
+        const auto args = std::array{frpc_path.c_str(), STR("-c"), config_file.c_str()};
         if (!process_manager_.add_process(args)) {
             fmt::println(STR("Failed to start frpc with config: {}"), config_file);
             return 1;

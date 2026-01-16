@@ -7,7 +7,7 @@
 #include <span>
 
 struct ProcessManager : Unique {
-    bool add_process(std::span<str const> args);
+    bool add_process(std::span<const_cstr const> args);
     void terminate_all();
     void wait_all();
 
