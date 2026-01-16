@@ -2,7 +2,7 @@
 
 #include <fmt/base.h>
 
-bool ProcessManager::add_process(std::span<const_cstr const> args) {
+bool ProcessManager::add_process(std::span<const char * const> args) {
     Process process;
     if (!process.start(args)) {
         return false;

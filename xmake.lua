@@ -8,9 +8,9 @@ set_policy("build.optimization.lto", true)
 if is_os("windows") then
     set_toolchains("clang-cl")
     add_defines("_CRT_SECURE_NO_WARNINGS")
-    add_defines("WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "NOMINMAX", "_WINDOWS")
+    add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX", "_WINDOWS")
 end
 
-includes("xmake/upx.lua")
+includes("xmake/*.lua")
 
 includes("*/xmake.lua")

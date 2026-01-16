@@ -3,7 +3,5 @@
 #define MULTI_FRP_VERSION "dev"
 #endif
 
-#include "util/str.hpp"
-
-inline const_cstr version = STR(MULTI_FRP_VERSION);
-inline const_cstr program_name = STR("multi-frp");
+inline const char *version = MULTI_FRP_VERSION;
+inline const char *program_name = "multi-frp";

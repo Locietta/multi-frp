@@ -12,6 +12,10 @@ option("version")
 
 target("multi-frp")
     add_rules("module.program")
+    if is_os("windows") then
+        add_rules("embed.manifest")
+        add_files("app.manifest")
+    end
     add_options("version")
     add_files("*.cpp")
     add_packages("fmt", "nlohmann_json")

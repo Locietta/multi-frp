@@ -1,6 +1,5 @@
 #pragma once
 
-#include "util/str.hpp"
 #include <filesystem>
 
 enum class ParseResult : unsigned char {
@@ -10,7 +9,7 @@ enum class ParseResult : unsigned char {
 };
 
 struct CliParser final {
-    ParseResult parse(this CliParser &self, int argc, cstr argv[]);
+    ParseResult parse(this CliParser &self, int argc, char *argv[]);
 
     std::filesystem::path config_file_path;
 };

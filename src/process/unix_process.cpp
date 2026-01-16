@@ -18,7 +18,7 @@ struct Process::Impl {
         }
     }
 
-    bool start(std::span<const_cstr const> args) {
+    bool start(std::span<const char *const> args) {
         if (args.empty()) return false;
 
         pid_ = fork();
@@ -28,7 +28,7 @@ struct Process::Impl {
             // Create new process group
             setpgid(0, 0);
 
-            execvp(args[0], const_cast<cstr const *>(args.data()));
+            execvp(args[0], const_cast<char *const *>(args.data()));
 
             // If execvp returns, there was an error
             _exit(1);
@@ -97,7 +97,7 @@ Process::Process() {}
 
 Process::~Process() = default;
 
-bool Process::start(std::span<const_cstr const> args) {
+bool Process::start(std::span<const char *const> args) {
     return impl<Process::Impl>()->start(args);
 }
 

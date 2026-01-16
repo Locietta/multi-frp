@@ -1,5 +1,6 @@
 #include "cli_parser.h"
 
+#include <fmt/base.h>
 #include <vector>
 #include "version.h"
 
@@ -8,12 +9,12 @@ namespace {
 void print_usage() {
     // clang-format off
     fmt::print(
-        STR("Usage: {} [--help] [--version] --config CONFIG_FILE\n")
-        STR("\n")
-        STR("Optional arguments:\n")
-        STR("  -h, --help                shows this help message and exits\n")
-        STR("  -v, --version             prints version information and exits\n")
-        STR("  -c, --config CONFIG_FILE  Path to the JSON configuration file [required]\n"),
+        "Usage: {} [--help] [--version] --config CONFIG_FILE\n"
+        "\n"
+        "Optional arguments:\n"
+        "  -h, --help                shows this help message and exits\n"
+        "  -v, --version             prints version information and exits\n"
+        "  -c, --config CONFIG_FILE  Path to the JSON configuration file [required]\n",
         program_name
     );
     // clang-format on
@@ -21,20 +22,20 @@ void print_usage() {
 
 } // namespace
 
-ParseResult CliParser::parse(this CliParser &self, int argc, cstr argv[]) {
-    std::vector<const_cstr> normalized;
+ParseResult CliParser::parse(this CliParser &self, int argc, char *argv[]) {
+    std::vector<const char *> normalized;
     normalized.reserve(argc);
 
     for (int i = 1; i < argc; ++i) {
         const auto arg = argv[i];
 
-        if (STRCMP(arg, STR("-h")) == 0 || STRCMP(arg, STR("--help")) == 0) {
+        if (std::strcmp(arg, "-h") == 0 || std::strcmp(arg, "--help") == 0) {
             print_usage();
             return ParseResult::GRACEFUL_EXIT;
         }
 
-        if (STRCMP(arg, STR("-v")) == 0 || STRCMP(arg, STR("--version")) == 0) {
-            fmt::println(STR("{} {}"), program_name, version);
+        if (std::strcmp(arg, "-v") == 0 || std::strcmp(arg, "--version") == 0) {
+            fmt::println("{} {}", program_name, version);
             return ParseResult::GRACEFUL_EXIT;
         }
 
@@ -45,9 +46,9 @@ ParseResult CliParser::parse(this CliParser &self, int argc, cstr argv[]) {
     for (size_t i = 0; i < normalized.size(); ++i) {
         const auto arg = normalized[i];
 
-        if (STRCMP(arg, STR("-c")) == 0 || STRCMP(arg, STR("--config")) == 0) {
+        if (std::strcmp(arg, "-c") == 0 || std::strcmp(arg, "--config") == 0) {
             if (i + 1 >= normalized.size() || normalized[i + 1][0] == 0) {
-                fmt::println(STR("Error parsing arguments: -c/--config requires CONFIG_FILE."));
+                fmt::println("Error parsing arguments: -c/--config requires CONFIG_FILE.");
                 print_usage();
                 return ParseResult::ERR;
             }
@@ -60,12 +61,12 @@ ParseResult CliParser::parse(this CliParser &self, int argc, cstr argv[]) {
             continue;
         }
 
-        fmt::println(STR("Error parsing arguments: unknown option '{}'"), arg);
+        fmt::println("Error parsing arguments: unknown option '{}'", arg);
         return ParseResult::ERR;
     }
 
     if (!config_provided) {
-        fmt::println(STR("Error parsing arguments: -c: required."));
+        fmt::println("Error parsing arguments: -c: required.");
         print_usage();
         return ParseResult::ERR;
     }
