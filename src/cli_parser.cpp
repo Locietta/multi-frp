@@ -1,15 +1,15 @@
 #include "cli_parser.h"
 
-#include <fmt/base.h>
 #include <vector>
 #include <cstring>
 #include "version.h"
+#include "util/print.hpp"
 
 namespace {
 
 void print_usage() {
     // clang-format off
-    fmt::print(
+    print(
         "Usage: {} [--help] [--version] --config CONFIG_FILE\n"
         "\n"
         "Optional arguments:\n"
@@ -36,7 +36,7 @@ ParseResult CliParser::parse(this CliParser &self, int argc, char *argv[]) {
         }
 
         if (std::strcmp(arg, "-v") == 0 || std::strcmp(arg, "--version") == 0) {
-            fmt::println("{} {}", program_name, version);
+            print(program_name, " ", version, "\n");
             return ParseResult::GRACEFUL_EXIT;
         }
 
@@ -49,7 +49,7 @@ ParseResult CliParser::parse(this CliParser &self, int argc, char *argv[]) {
 
         if (std::strcmp(arg, "-c") == 0 || std::strcmp(arg, "--config") == 0) {
             if (i + 1 >= normalized.size() || normalized[i + 1][0] == 0) {
-                fmt::println("Error parsing arguments: -c/--config requires CONFIG_FILE.");
+                print("Error parsing arguments: -c/--config requires CONFIG_FILE.\n");
                 print_usage();
                 return ParseResult::ERR;
             }
@@ -62,12 +62,12 @@ ParseResult CliParser::parse(this CliParser &self, int argc, char *argv[]) {
             continue;
         }
 
-        fmt::println("Error parsing arguments: unknown option '{}'", arg);
+        print("Error parsing arguments: unknown option '", arg, "'.\n");
         return ParseResult::ERR;
     }
 
     if (!config_provided) {
-        fmt::println("Error parsing arguments: -c: required.");
+        print("Error parsing arguments: -c: required.\n");
         print_usage();
         return ParseResult::ERR;
     }

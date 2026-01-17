@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <string>
 
-#include <fmt/base.h>
+#include "util/print.hpp"
 
 #include "cli_parser.h"
 #include "config.hpp"
@@ -70,7 +70,7 @@ int App::run(int argc, char *argv[]) {
     pthread_sigmask(SIG_BLOCK, &signals, nullptr);
 #else
     if (!SetConsoleCtrlHandler(console_ctrl_handler, TRUE)) {
-        fmt::println("Error: Could not set control handler");
+        print("Error: Could not set control handler\n");
         return 1;
     }
 #endif
@@ -87,7 +87,7 @@ int App::run(int argc, char *argv[]) {
     const auto config_file_path_str = config_file_path.string();
 
     if (!std::filesystem::exists(config_file_path)) {
-        fmt::println("Config file does not exist: {}", config_file_path_str);
+        print("Config file does not exist: ", config_file_path_str, "\n");
         return 1;
     }
 
@@ -98,12 +98,12 @@ int App::run(int argc, char *argv[]) {
         const auto file_deleter = [](FILE *file) static { if (file) {fclose(file);} };
         std::unique_ptr<FILE, decltype(file_deleter)> file_ptr(fopen(config_file_path_str.c_str(), "r"), file_deleter);
         if (!file_ptr) {
-            fmt::println("Failed to open config file: {}", config_file_path_str);
+            print("Failed to open config file: ", config_file_path_str, "\n");
             return 1;
         }
         const auto file_size = fseek(file_ptr.get(), 0, SEEK_END);
         if (file_size != 0) {
-            fmt::println("Failed to read config file: {}", config_file_path_str);
+            print("Failed to read config file: ", config_file_path_str, "\n");
             return 1;
         }
         file_content.resize(ftell(file_ptr.get()));
@@ -117,13 +117,13 @@ int App::run(int argc, char *argv[]) {
             auto ret = daw::json::from_json<Config>(file_content);
             return ret;
         } catch (const daw::json::json_exception &e) {
-            fmt::println("Error parsing config file: {}", e.what());
+            print("Error parsing config file: ", e.what(), "\n");
             return std::nullopt;
         } catch (const std::exception &e) {
-            fmt::println("Error parsing config file: {}", e.what());
+            print("Error parsing config file: ", e.what(), "\n");
             return std::nullopt;
         } catch (...) {
-            fmt::println("Unknown error parsing config file.");
+            print("Unknown error parsing config file.\n");
             return std::nullopt;
         }
     }();
@@ -134,37 +134,37 @@ int App::run(int argc, char *argv[]) {
     for (const auto &config_file : config.configs) {
         const auto config_path = std::filesystem::path(config_file);
         if (!std::filesystem::exists(config_path)) {
-            fmt::println("Config file does not exist: {}", config_file);
+            print("Config file does not exist: ", config_file, "\n");
             return 1;
         }
     }
 
     // Print the frpc binary path and config files
-    fmt::println("frpc binary: {}", config.frpc);
-    fmt::println("Config files:");
+    print("frpc binary: ", config.frpc, "\n");
+    print("Config files:\n");
     for (const auto &config_file : config.configs) {
-        fmt::println(" - {}", config_file);
+        print(" - ", config_file, "\n");
     }
 
     // Execute multiple frpc all at background
     for (const auto &config_file : config.configs) {
         const auto args = std::array{config.frpc.c_str(), "-c", config_file.c_str(), arg_end};
         if (!process_manager_.add_process(args)) {
-            fmt::println("Failed to start frpc with config: {}", config_file);
+            print("Failed to start frpc with config: ", config_file, "\n");
             return 1;
         }
-        fmt::println("Started frpc with config: {}", config_file);
+        print("Started frpc with config: ", config_file, "\n");
     }
 
 #ifndef _WIN32
     int last_signal;
     sigwait(&signals, &last_signal);
-    fmt::println("Received termination signal: {}", signal_to_str(last_signal));
+    print("Received termination signal: ", signal_to_str(last_signal), "\n");
     process_manager_.terminate_all();
 #endif
 
     process_manager_.wait_all();
-    fmt::println("All frpc instances have been executed.");
+    print("All frpc instances have been executed.\n");
 
     return 0;
 }

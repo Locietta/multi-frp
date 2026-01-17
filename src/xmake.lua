@@ -2,7 +2,7 @@ add_includedirs(".")
 
 includes("process")
 
-add_requires("fmt", "daw_json_link")
+add_requires("daw_json_link")
 
 option("version")
     set_showmenu(true)
@@ -18,6 +18,6 @@ target("multi-frp")
     end
     add_options("version")
     add_files("*.cpp")
-    add_packages("fmt", "daw_json_link")
+    add_packages("daw_json_link")
     add_headerfiles("*.h", "util/*.hpp", { install = false })
     add_deps("process")

@@ -4,7 +4,6 @@
 #include "process/process.h"
 
 #include <string>
-#include <fmt/base.h>
 #include <windows.h>
 
 struct Process::Impl {
@@ -129,14 +128,31 @@ struct Process::Impl {
 
 private:
     std::string build_command_line(std::span<const char *const> args) {
-        std::string result;
-        result.reserve(256); // Pre-allocate reasonable size
+        if (args.empty()) return {};
 
-        for (size_t i = 0; i < args.size(); ++i) {
-            if (i > 0) result.append(" ");
-            result.append("\"");
-            result.append(args[i]);
-            result.append("\"");
+        // calculate required size
+        size_t size = 0;
+        for (const auto &arg : args) {
+            size += std::strlen(arg);
+        }
+        size += args.size() * 3 - 1; // for quotes and spaces
+
+        std::string result(size, '\0');
+
+        // fill first argument
+        char *ptr = result.data();
+        ptr[0] = '\"';
+        std::memcpy(ptr + 1, args[0], std::strlen(args[0]));
+        ptr[1 + std::strlen(args[0])] = '\"';
+        ptr += 2 + std::strlen(args[0]);
+
+        // fill remaining arguments
+        for (size_t i = 1; i < args.size(); ++i) {
+            ptr[0] = ' ';
+            ptr[1] = '\"';
+            std::memcpy(ptr + 2, args[i], std::strlen(args[i]));
+            ptr[2 + std::strlen(args[i])] = '\"';
+            ptr += 3 + std::strlen(args[i]);
         }
         return result;
     }
