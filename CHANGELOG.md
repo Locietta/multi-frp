@@ -1,3 +1,21 @@
+<a id="v0.3.0"></a>
+# [multi-frp v0.3.0](https://github.com/Locietta/multi-frp/releases/tag/v0.3.0) - 2026-01-17
+
+* **Unicode support** for windows by specifying utf-8 in manifest
+  * only works for **windows 10 1903 or later**
+  * produces smaller binary and use less memory compared to use wchar_t windows API (also easier to write and maintain)
+* Removed the dependencies on fmt and arg_parse, replace nolhmann/json with daw_json_link
+  * arg_parse works poorly with unicode
+  * greatly reduce the binary size
+* Switch to mode.minsizerel from mode.release for release
+* Reduce unneccessary internal string copys
+* Fix some UB caused by dangling
+
+**Full Changelog**: https://github.com/Locietta/multi-frp/compare/v0.2.0...v0.3.0
+
+[Changes][v0.3.0]
+
+
 <a id="v0.2.0"></a>
 # [multi-frp v0.2.0](https://github.com/Locietta/multi-frp/releases/tag/v0.2.0) - 2026-01-14
 
@@ -27,6 +45,7 @@
 [Changes][v0.1.0]
 
 
+[v0.3.0]: https://github.com/Locietta/multi-frp/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Locietta/multi-frp/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Locietta/multi-frp/tree/v0.1.0
 
