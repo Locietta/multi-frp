@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <cstdio>
+#include <cstring>
 
 // print a bunch of strings at once
 // first gather all the length of the strings then allocate a buffer
