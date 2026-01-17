@@ -83,7 +83,7 @@ int App::run(int argc, char *argv[]) {
         return 1;
     }
 
-    const auto config_file_path = parser.config_file_path;
+    const auto &config_file_path = parser.config_file_path;
     const auto config_file_path_str = config_file_path.string();
 
     if (!std::filesystem::exists(config_file_path)) {
@@ -101,34 +101,27 @@ int App::run(int argc, char *argv[]) {
             print("Failed to open config file: ", config_file_path_str, "\n");
             return 1;
         }
-        const auto file_size = fseek(file_ptr.get(), 0, SEEK_END);
-        if (file_size != 0) {
-            print("Failed to read config file: ", config_file_path_str, "\n");
-            return 1;
-        }
-        file_content.resize(ftell(file_ptr.get()));
-        fseek(file_ptr.get(), 0, SEEK_SET);
+
+        const auto file_size = std::filesystem::file_size(config_file_path);
+        file_content.resize(file_size);
+
         fread(file_content.data(), 1, file_content.size(), file_ptr.get());
     }
 
     /// Parse JSON
-    const auto config_opt = [&] -> std::optional<Config> {
-        try {
-            auto ret = daw::json::from_json<Config>(file_content);
-            return ret;
-        } catch (const daw::json::json_exception &e) {
-            print("Error parsing config file: ", e.what(), "\n");
-            return std::nullopt;
-        } catch (const std::exception &e) {
-            print("Error parsing config file: ", e.what(), "\n");
-            return std::nullopt;
-        } catch (...) {
-            print("Unknown error parsing config file.\n");
-            return std::nullopt;
-        }
-    }();
-    if (!config_opt) { return 1; }
-    const auto &config = config_opt.value();
+    Config config;
+    try {
+        config = daw::json::from_json<Config>(file_content);
+    } catch (const daw::json::json_exception &e) {
+        print("Error parsing config file: ", e.what(), "\n");
+        return 1;
+    } catch (const std::exception &e) {
+        print("Error parsing config file: ", e.what(), "\n");
+        return 1;
+    } catch (...) {
+        print("Unknown error parsing config file.\n");
+        return 1;
+    }
 
     // Check if all config files exist
     for (const auto &config_file : config.configs) {
