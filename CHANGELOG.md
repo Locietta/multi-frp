@@ -1,3 +1,13 @@
+<a id="v0.4.0"></a>
+# [multi-frp v0.4.0](https://github.com/Locietta/multi-frp/releases/tag/v0.4.0) - 2026-03-04
+
+* Support C++ style comments (`// ...` and `/* ... */`) in json config
+
+**Full Changelog**: https://github.com/Locietta/multi-frp/compare/v0.3.0...v0.4.0
+
+[Changes][v0.4.0]
+
+
 <a id="v0.3.0"></a>
 # [multi-frp v0.3.0](https://github.com/Locietta/multi-frp/releases/tag/v0.3.0) - 2026-01-17
 
@@ -45,6 +55,7 @@
 [Changes][v0.1.0]
 
 
+[v0.4.0]: https://github.com/Locietta/multi-frp/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/Locietta/multi-frp/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Locietta/multi-frp/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Locietta/multi-frp/tree/v0.1.0
