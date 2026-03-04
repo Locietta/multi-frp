@@ -111,7 +111,10 @@ int App::run(int argc, char *argv[]) {
     /// Parse JSON
     Config config;
     try {
-        config = daw::json::from_json<Config>(file_content);
+        using namespace daw::json::options;
+
+        config = daw::json::from_json<Config>(file_content,
+                                              parse_flags<PolicyCommentTypes::cpp>);
     } catch (const daw::json::json_exception &e) {
         print("Error parsing config file: ", e.what(), "\n");
         return 1;
